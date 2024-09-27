@@ -9,7 +9,7 @@ const app = express();
 
 // Define paths
 const clientPath = path.join(__dirname, '..', 'client/src');
-const dataPath = path.join(__dirname, 'data', 'users.json');
+const superPath = path.join(__dirname, 'data', 'superheroes.json');
 const serverPublic = path.join(__dirname, 'public');
 // Middleware setup
 app.use(express.static(clientPath)); // Serve static files from client directory
@@ -23,84 +23,118 @@ app.get('/', (req, res) => {
     res.sendFile('index.html', { root: clientPath });
 });
 
-app.get('/users', async (req, res) => {
+app.get('/superheroes', async (req, res) => {
     try {
-        const data = await fs.readFile(dataPath, 'utf8');
+        const data = await fs.readFile(superPath, 'utf8');
 
-        const users = JSON.parse(data);
-        if (!users) {
-            throw new Error("Error no users available");
+        const heroes = JSON.parse(data);
+        if (!heroes) {
+            throw new Error("Error no heroes available");
         }
-        res.status(200).json(users);
+        res.status(200).json(heroes);
     } catch (error) {
-        console.error("Problem getting users" + error.message);
-        res.status(500).json({ error: "Problem reading users" });
+        console.error("Problem getting heroes" + error.message);
+        res.status(500).json({ error: "Problem reading heroes" });
     }
 });
 
-// Form route
-app.get('/form', (req, res) => {
+app.get('/super', (req, res) => {
     res.sendFile('pages/form.html', { root: serverPublic });
 });
 
-// Form submission route
 app.post('/submit-form', async (req, res) => {
     try {
-        const { name, email, message } = req.body;
-
-        // Read existing users from file
-        let users = [];
+        const { name, si, universe, power } = req.body;
+        let heroes = [];
         try {
-            const data = await fs.readFile(dataPath, 'utf8');
-            users = JSON.parse(data);
+            const data = await fs.readFile(superPath, 'utf8');
+            heroes = JSON.parse(data);
         } catch (error) {
-            // If file doesn't exist or is empty, start with an empty array
-            console.error('Error reading user data:', error);
-            users = [];
+            console.error('Error reading superhero data: ', error);
+            heroes = [];
         }
 
-        // Find or create user
-        let user = users.find(u => u.name === name && u.email === email);
-        if (user) {
-            user.messages.push(message);
+        let hero = heroes.find(h => h.name === name && h.si === si && h.universe === universe);
+        if (hero) {
+            hero.powers.push(power);
         } else {
-            user = { name, email, messages: [message] };
-            users.push(user);
+            hero = { name, si, universe, powers: [power] };
+            heroes.push(hero);
         }
 
-        // Save updated users
-        await fs.writeFile(dataPath, JSON.stringify(users, null, 2));
-        res.redirect('/form');
+        await fs.writeFile(superPath, JSON.stringify(heroes, null, 2));
+        res.redirect('/super');
     } catch (error) {
         console.error('Error processing form:', error);
         res.status(500).send('An error occurred while processing your submission.');
     }
 });
 
-// Update user route (currently just logs and sends a response)
-app.put('/update-user/:currentName/:currentEmail', async (req, res) => {
+app.put('/update-hero/:currentName/:currentUniverse', async (req, res) => {
     try {
-        const { currentName, currentEmail } = req.params;
-        const { newName, newEmail } = req.body;
-        console.log('Current user:', { currentName, currentEmail });
-        console.log('New user data:', { newName, newEmail });
-        const data = await fs.readFile(dataPath, 'utf8');
+        const { currentName, currentUniverse } = req.params;
+        const { newName, newUniverse } = req.body;
+        console.log('Current superhero:', { currentName, currentUniverse });
+        console.log('New superhero data:', { newName, newUniverse });
+        const data = await fs.readFile(superPath, 'utf8');
         if (data) {
-            let users = JSON.parse(data);
-            const userIndex = users.findIndex(user => user.name === currentName && user.email === currentEmail);
-            console.log(userIndex);
-            if (userIndex === -1) {
-                return res.status(404).json({ message: "User not found" })
+            let heroes = JSON.parse(data);
+            const heroIndex = heroes.findIndex(hero => hero.name === currentName && hero.universe === currentUniverse);
+            console.log(heroIndex);
+            if (heroIndex === -1) {
+                return res.status(404).json({ message: "Hero not found" });
             }
-            users[userIndex] = { ...users[userIndex], name: newName, email: newEmail };
-            console.log(users);
-            await fs.writeFile(dataPath, JSON.stringify(users, null, 2));
+            heroes[heroIndex] = { ...heroes[heroIndex], name: newName, universe: newUniverse };
+            console.log(heroes);
 
-            res.status(200).json({ message: `You sent ${newName} and ${newEmail}` });
+            await fs.writeFile(superPath, JSON.stringify(heroes, null, 2));
+
+            res.status(200).json({ message: `You sent ${newName}, and ${newUniverse}` });
         }
     } catch (error) {
-        console.error('Error updating user:', error);
-        res.status(500).send('An error occurred while updating the user.');
+        console.error('Error updating hero:', error);
+        res.status(500).send('An error occurred while updating the hero.');
+    }
+});
+
+app.delete('/user/:name/:universe', async (req, res) => {
+    try {
+        // console.log(req.params)
+        // then cache returned name and email as destructured variables from params
+        console.log(req.params);
+        console.log(req.params.name);
+        console.log(req.params.universe);
+        const { name, universe } = req.params;
+        // initialize an empty array of 'users'
+        let heroes = [];
+        // try to read the users.json file and cache it as data
+        try {
+            const data = await fs.readFile(superPath, 'utf8');
+            // parse the data
+            heroes = JSON.parse(data);
+        } catch (error) {
+            return res.status(404).send('File data not found');
+        }
+        // cache the user index based on a matching name and email
+        const heroIndex = heroes.findIndex(hero => hero.name === name && hero.universe === universe);
+        // handle a situation where an index doesn't exist
+        if (heroIndex === -1) {
+            return res.status(404).send('Hero not found');
+        }
+        heroes.splice(heroIndex, 1);
+        console.log(heroIndex);
+        console.log(heroes);
+        try {
+            await fs.writeFile(superPath, JSON.stringify(heroes, null, 2));
+        } catch (error) {
+            console.error('Failed to write to database');
+        }
+        // splice the users array with the intended delete name and email
+        // try to write the users array back to the file
+        // send a success deleted message
+        return res.send('successfully deleted hero');
+    } catch (error) {
+        res.status(500).send('There was a problem');
     }
 });
 

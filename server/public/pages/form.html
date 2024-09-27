@@ -3,110 +3,173 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contact Form</title>
+    <title>Superhero Form</title>
+    <style>
+      body {
+        background-color: cyan;
+        color: rgb(9, 71, 71);
+        /* display: grid; */
+        justify-content: center;
+        align-items: center;
+      }
+      h1 {
+        text-align: center;
+      }
+      form {
+        background-color: #8eb1c2;
+        padding: 10px;
+        border: 5px solid teal;
+        border-radius: 1rem;
+      }
+      table {
+        background-color: #8eb1c2;
+        padding: 10px;
+        border: 5px solid teal;
+        border-radius: 1rem;
+        width: 100%;
+      }
+      th {
+        border: 1px solid teal;
+      }
+    </style>
   </head>
   <body>
-    <h1>Contact Form</h1>
+    <h1>New Hero</h1>
+    <form action="/submit-form" method="POST">
+      <label for="name">Superhero Name:</label>
+      <input type="text" id="name" name="name" required /><br /><br />
+      <label for="si">Secret Identity:</label>
+      <input type="text" id="si" name="si" required /><br /><br />
+      <label for="universe">Universe/Franshise:</label>
+      <input type="text" id="universe" name="universe" required /><br /><br />
+      <label for="power">Super Powers:</label><br />
+      <input type="text" id="power" name="power" required></input
+      ><br /><br />
+      <input type="submit" value="Submit" />
+    </form>
+    <!-- <h1>Contact Form</h1>
     <form action="/submit-form" method="POST">
       <label for="name">Name:</label>
       <input type="text" id="name" name="name" required /><br /><br />
       <label for="email">Email:</label>
       <input type="email" id="email" name="email" required /><br /><br />
-      <label for="message">Message:</label><br />
-      <textarea
-        id="message"
-        name="message"
-        rows="4"
-        cols="50"
-        required
-      ></textarea
-      ><br /><br />
       <input type="submit" value="Submit" />
-    </form>
-    <h1>User Management</h1>
-    <form id="updateForm">
-      <label for="currentName">Current name:</label>
+    </form> -->
+    <h1>Super Management</h1>
+    <form id="updateSuper">
+      <label for="currentName">Current Superhero Name:</label>
       <input type="text" id="currentName" required /><br /><br />
-      <label for="currentEmail">Current email:</label>
-      <input type="email" id="currentEmail" required /><br /><br />
-      <label for="newName">New name:</label>
+      <label for="currentUniverse">Current Universe:</label>
+      <input type="text" id="currentUniverse" required /><br /><br />
+      <label for="newName">New Superhero Name:</label>
       <input type="text" id="newName" required /><br /><br />
-      <label for="newEmail">New email:</label>
-      <input type="email" id="newEmail" required /><br /><br />
-      <button type="submit">Update User</button>
+      <label for="newUniverse">New Universe:</label>
+      <input type="text" id="newUniverse" required /><br /><br />
+      <button type="submit">Update Hero</button>
     </form>
-    <h1>Show Users</h1>
-    <table id="usersTable">
+    <h1>Delete Hero</h1>
+    <form id="delete-hero">
+      <label for="delete-name">Superhero Name:</label>
+      <input type="text" id="delete-name"><br /><br />
+      <label for="delete-universe">Universe:</label>
+      <input type="text" id="delete-universe"><br /><br />
+      <button type="submit">Delete User</button>
+    </form>
+    <h1>Show Heroes</h1>
+    <table id="heroTable">
       <thead>
         <tr>
-          <th>User Name</th>
-          <th>User Email</th>
+          <th>Hero Name</th>
+          <th>Secret Identity</th>
+          <th>Hero Universe</th>
         </tr>
       </thead>
-      <tbody id="userTableBody">
+      <tbody id="heroTableBody">
         <!-- data of users will be rendered here -->
       </tbody>
     </table>
     <script>
       document
-        .getElementById("updateForm")
+        .getElementById("updateSuper")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
           const currentName = document.getElementById("currentName").value;
-          const currentEmail = document.getElementById("currentEmail").value;
+          const currentUniverse =
+            document.getElementById("currentUniverse").value;
           const newName = document.getElementById("newName").value;
-          const newEmail = document.getElementById("newEmail").value;
+          const newUniverse = document.getElementById("newUniverse").value;
           try {
             const response = await fetch(
-              `/update-user/${currentName}/${currentEmail}`,
+              `/update-hero/${currentName}/${currentUniverse}`,
               {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ newName, newEmail }),
+                body: JSON.stringify({ newName, newUniverse }),
               }
             );
             const data = await response.json();
             console.log(data);
-            renderUsers();
+            renderHeroes();
             // alert("Message is: " + data.message);
           } catch (error) {
             alert("Error updating user: " + error.message);
           }
         });
-      async function fetchUsers() {
+        document
+        .getElementById('delete-hero')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const name = document.getElementById('delete-name').value;
+          const universe = document.getElementById('delete-universe').value;
+          try {
+            const response = await fetch(`/user/${name}/${universe}`, {
+              method: "DELETE",
+            });
+            if(!response.ok) {
+              throw new Error("There was a problem fetching the delete endpoint");
+            }
+            const data = await response.text();
+            console.log(data);
+            renderHeroes();
+          } catch(error) {
+            console.error("There was a problem, skill issue" + error.message + "GG bro. Keep mogging" + "You threw");
+          }
+        });
+      async function fetchHeroes() {
         try {
-          const response = await fetch("/users");
+          const response = await fetch("/superheroes");
           if (!response.ok) {
             throw new Error("Error fetching users. Response not ok");
           }
           // there could be an error getting response/fetching the endpoint
           console.log(response);
-          const users = await response.json();
+          const heroes = await response.json();
           // there could be an error parsing the response
           // console.log(users);
-          return users;
+          return heroes;
         } catch (error) {
           console.error("There was a problem");
           console.error(error);
         }
       }
 
-      async function renderUsers() {
-        const tableBody = document.getElementById("userTableBody");
+      async function renderHeroes() {
+        const tableBody = document.getElementById("heroTableBody");
         tableBody.innerHTML = "";
         try {
-          const users = await fetchUsers();
-          if (Array.isArray(users) && users.length > 0) {
-            users.forEach((user) => {
-              const row = `<tr><td>${user.name}</td><td>${user.email}</td></tr>`;
+          const heroes = await fetchHeroes();
+          if (Array.isArray(heroes) && heroes.length > 0) {
+            heroes.forEach((hero) => {
+              console.log(hero);
+              const row = `<tr><td>${hero.name}</td><td>${hero.si}</td><td>${hero.universe}</td></tr>`;
               tableBody.innerHTML += row;
             });
           }
         } catch (error) {}
       }
-      document.addEventListener("DOMContentLoaded", renderUsers);
+      document.addEventListener("DOMContentLoaded", renderHeroes);
     </script>
   </body>
 </html>

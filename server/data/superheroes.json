@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Nightwing",
+    "si": "Dick Grayson",
+    "universe": "DC",
+    "powers": [
+      "Eskrima Sticks"
+    ]
+  },
+  {
+    "name": "Red Robin",
+    "si": "Tim Drake",
+    "universe": "DC",
+    "powers": [
+      "Bow Staff"
+    ]
+  },
+  {
+    "name": "Superman",
+    "si": "Clark Kent",
+    "universe": "DC",
+    "powers": [
+      "Flight"
+    ]
+  },
+  {
+    "name": "Batman",
+    "si": "Bruce Wayne",
+    "universe": "DC",
+    "powers": [
+      "Being Rich"
+    ]
+  },
+  {
+    "name": "Spiderman",
+    "si": "Peter Parker",
+    "universe": "Marvel",
+    "powers": [
+      "Spider Sense"
+    ]
+  }
+]
